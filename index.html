@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Butler–Volmer kinetics: kinetic control of electrode reactions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..700&family=Literata:ital,opsz,wght@0,7..72,400..600;1,7..72,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#E6EEE8;
+  --paper-line:rgba(46,105,72,.075);
+  --sheet:#FAFCFA;
+  --ink:#18242F;
+  --ink-soft:#4A5866;
+  --rule:#B6C6BB;
+  --plot-grid:#E2E9E4;
+  --anodic:#B02F28;
+  --cathodic:#1E539C;
+  --transport:#95600F;
+  --window:rgba(30,83,156,.09);
+  --sans:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --serif:"Literata",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  margin:0;color:var(--ink);font-family:var(--serif);font-size:18px;line-height:1.65;
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(var(--paper-line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--paper-line) 1px,transparent 1px);
+  background-size:24px 24px;
+}
+math{font-family:"STIX Two Math","Cambria Math","Latin Modern Math",math;font-size:1.08em}
+.katex{display:inline}
+.eq math[display=block],.hero-eq math[display=block]{display:inline math;math-style:normal}
+.eq{display:block;margin:1.1rem 0 1.3rem;overflow-x:auto;padding:.2rem 0 .2rem 1.5em}
+.eq math{font-size:1.25em}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+.prose{max-width:68ch}
+a{color:var(--cathodic)}
+:focus-visible{outline:3px solid var(--transport);outline-offset:2px}
+
+/* header */
+.top{border-bottom:1px solid var(--rule);background:rgba(230,238,232,.92);position:sticky;top:0;z-index:5;backdrop-filter:blur(4px)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:54px}
+.course{font-family:var(--sans);font-size:14px;color:var(--ink-soft);font-stretch:90%}
+.course a{color:var(--ink);font-weight:600;text-decoration:none;border-bottom:1px solid var(--rule)}
+.course a:hover{border-bottom-color:var(--ink)}
+.top nav{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--sans);font-size:14px}
+.top nav a{color:var(--ink);text-decoration:none;border-bottom:1px solid transparent}
+.top nav a:hover{border-bottom-color:var(--ink)}
+
+/* type */
+h1,h2,h3{font-family:var(--sans);font-weight:650;line-height:1.1;margin:0}
+h1{font-size:clamp(38px,5.6vw,68px);font-stretch:78%;letter-spacing:-.01em;margin-top:30px}
+h2{font-size:clamp(30px,3.6vw,42px);font-stretch:82%;margin:0 0 18px}
+h2 .sec{color:var(--ink-soft);font-weight:450;margin-right:.35em}
+h3{font-size:24px;font-stretch:88%;margin:36px 0 10px}
+p{margin:0 0 1em}
+.lede{font-size:21px;max-width:60ch;color:var(--ink);margin-top:14px}
+section{padding:64px 0 20px;border-top:1px solid var(--rule)}
+section:first-of-type{border-top:0}
+.note{font-size:15.5px;color:var(--ink-soft);line-height:1.55}
+sub,sup{line-height:0}
+
+/* hero */
+.hero{padding-bottom:30px}
+.hero-eq{width:fit-content;max-width:100%;margin:22px 0 8px;padding:14px 26px;background:var(--sheet);border-left:4px solid var(--ink);overflow-x:auto}
+.hero-eq math{font-size:1.7em}
+.terms{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));max-width:1000px;gap:4px 28px;margin:14px 0 0;font-size:15.5px;line-height:1.45}
+.terms div{display:flex;gap:10px}
+.terms dt{font-family:var(--serif);font-style:italic;min-width:3.8em;font-weight:600;white-space:nowrap}
+.terms dd{margin:0;color:var(--ink-soft)}
+
+/* labs */
+.lab{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:26px;align-items:start;margin:26px 0 30px}
+.lab.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 290px}
+.sheet{background:var(--sheet);border:1px solid var(--rule);border-radius:2px;padding:14px 14px 8px}
+.sheet canvas{display:block;width:100%;height:360px}
+.hero .sheet canvas{height:440px}
+.sheet .cap{font-family:var(--sans);font-size:14px;color:var(--ink-soft);margin:6px 2px 4px;line-height:1.35}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-family:var(--sans);font-size:14px;margin:8px 2px 2px}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{display:inline-block;width:26px;height:0;border-top:3px solid currentColor}
+.legend i.dash{border-top-style:dashed}
+.controls{font-family:var(--sans);font-size:15px;border-left:1px solid var(--rule);padding-left:20px}
+.ctl{margin:0 0 16px}
+.ctl label,.ctl .lbl{display:flex;justify-content:space-between;gap:8px;align-items:baseline;margin-bottom:4px}
+.ctl output{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--ink);height:26px;margin:0}
+select{font:inherit;padding:4px 6px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);border-radius:2px}
+.check{display:flex;gap:8px;align-items:center;font-size:14.5px}
+.check input{accent-color:var(--ink);width:17px;height:17px}
+.readout{margin:18px 0 0;padding-top:12px;border-top:1px solid var(--rule)}
+.readout div{display:flex;justify-content:space-between;gap:10px;padding:3px 0;font-size:14.5px;line-height:1.35}
+.readout dt{color:var(--ink-soft)}
+.readout dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.state{margin-top:10px;font-size:14.5px;padding:8px 10px;background:var(--paper);border-radius:2px}
+.radios{display:flex;flex-direction:column;gap:6px}
+.radios label{display:flex;gap:8px;align-items:center;justify-content:flex-start}
+.radios input{accent-color:var(--cathodic)}
+button{font-family:var(--sans);font-size:15px;font-weight:600;padding:8px 14px;border:1.5px solid var(--ink);background:var(--sheet);color:var(--ink);border-radius:2px;cursor:pointer;margin:0 8px 8px 0}
+button:hover{background:var(--ink);color:var(--sheet)}
+
+.try{background:var(--sheet);border:1px dashed var(--rule);padding:14px 18px;max-width:78ch;font-size:16.5px}
+.try strong{font-family:var(--sans);font-weight:650}
+
+/* worked examples */
+table.data{border-collapse:collapse;font-family:var(--sans);font-size:15.5px;margin:10px 0 18px;font-variant-numeric:tabular-nums}
+table.data th,table.data td{padding:5px 16px;text-align:right;border-bottom:1px solid var(--rule)}
+table.data th{font-weight:600;border-bottom:1.5px solid var(--ink)}
+details{max-width:78ch;margin:10px 0;border-top:1px solid var(--rule);padding:8px 0}
+details summary{cursor:pointer;font-family:var(--sans);font-weight:600;font-size:16.5px}
+details[open] summary{margin-bottom:8px}
+ol.steps{padding-left:1.3em;margin:6px 0}
+ol.steps li{margin-bottom:.55em}
+.qa details summary{font-family:var(--serif);font-weight:500;font-size:18px;line-height:1.5}
+.qa details summary::marker{color:var(--ink-soft)}
+
+footer{border-top:1px solid var(--rule);margin-top:50px;padding:30px 0 60px;font-size:15px;color:var(--ink-soft)}
+footer ol{padding-left:1.2em;max-width:90ch}
+
+@media (max-width:1020px){
+  .lab.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .lab.two .controls{grid-column:1 / -1;border-left:0;padding-left:0;border-top:1px solid var(--rule);padding-top:14px}
+}
+@media (max-width:860px){
+  body{font-size:17px}
+  .lab,.lab.two{grid-template-columns:minmax(0,1fr)}
+  .controls{border-left:0;padding-left:0;border-top:1px solid var(--rule);padding-top:14px}
+  .sheet canvas,.hero .sheet canvas{height:300px}
+  .top nav{display:none}
+  .top{position:static}
+  .hero-eq math{font-size:1.05em}
+  .eq math{font-size:.95em}
+  .eq{padding-left:0}
+  .wrap{padding:0 16px}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <span class="course"><a href="https://www.linkedin.com/in/sergio-blanco-professor/" target="_blank" rel="noopener">Sergio Blanco, PhD</a>&ensp;Electrochemistry 101</span>
+    <nav aria-label="Sections">
+      <a href="#origin">Origin</a>
+      <a href="#limits">Limits</a>
+      <a href="#transport">Mass transport</a>
+      <a href="#examples">Examples</a>
+      <a href="#check">Check yourself</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section class="hero" aria-labelledby="t-hero">
+  <h1 id="t-hero">Kinetic control and the Butler–Volmer equation</h1>
+  <p class="lede">When electron transfer across the interface is the slowest step, the current is set by how the overpotential tilts the activation barrier. Change the parameters below and watch the polarization curve respond.</p>
+
+  <div class="hero-eq"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>i</mi><mo>=</mo><msub><mi>i</mi><mn>0</mn></msub><mrow><mo fence="true">[</mo><mi>exp</mi><mo>⁡</mo><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mfrac><mrow><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo stretchy="false">)</mo><mtext> </mtext><mi>n</mi><mi>F</mi><mi>η</mi></mrow><mrow><mi>R</mi><mi>T</mi></mrow></mfrac><mo fence="true">)</mo></mrow><mo>−</mo><mi>exp</mi><mo>⁡</mo><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mo>−</mo><mfrac><mrow><mi>α</mi><mtext> </mtext><mi>n</mi><mi>F</mi><mi>η</mi></mrow><mrow><mi>R</mi><mi>T</mi></mrow></mfrac><mo fence="true">)</mo></mrow><mo fence="true">]</mo></mrow></mrow><annotation encoding="application/x-tex">i = i_0\left[\exp\!\left(\frac{(1-\alpha)\,nF\eta}{RT}\right) - \exp\!\left(-\frac{\alpha\, nF\eta}{RT}\right)\right]</annotation></semantics></math></span></div>
+  <dl class="terms">
+    <div><dt>i</dt><dd>net current density, anodic positive (IUPAC)</dd></div>
+    <div><dt>i₀</dt><dd>exchange current density at equilibrium</dd></div>
+    <div><dt>η</dt><dd>overpotential, <i>E</i> − <i>E</i><sub>eq</sub></dd></div>
+    <div><dt>α</dt><dd>cathodic transfer coefficient; 1 − α is the anodic one</dd></div>
+    <div><dt>n</dt><dd>electrons transferred in the step</dd></div>
+    <div><dt>F, R, T</dt><dd>Faraday constant, gas constant, temperature</dd></div>
+  </dl>
+
+  <div class="lab">
+    <div class="sheet">
+      <canvas id="c-hero" role="img" aria-label="Current density versus overpotential from the Butler–Volmer equation, showing anodic, cathodic and net currents"></canvas>
+      <div class="legend">
+        <span style="color:var(--ink)"><i></i><span>net current</span></span>
+        <span style="color:var(--anodic)"><i class="dash"></i><span>anodic partial, i<sub>a</sub></span></span>
+        <span style="color:var(--cathodic)"><i class="dash"></i><span>cathodic partial, i<sub>c</sub></span></span>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="ctl"><label for="h-i0"><span>Exchange current density, i₀</span><output id="o-h-i0"></output></label>
+        <input type="range" id="h-i0" min="-7" max="-1" step="0.1" value="-3"></div>
+      <div class="ctl"><label for="h-alpha"><span>Transfer coefficient, α</span><output id="o-h-alpha"></output></label>
+        <input type="range" id="h-alpha" min="0.1" max="0.9" step="0.01" value="0.5"></div>
+      <div class="ctl"><label for="h-T"><span>Temperature, T</span><output id="o-h-T"></output></label>
+        <input type="range" id="h-T" min="273" max="363" step="1" value="298"></div>
+      <div class="ctl"><label for="h-n"><span>Electrons transferred, n</span><select id="h-n"><option value="1" selected>1</option><option value="2">2</option></select></label></div>
+      <div class="ctl"><label for="h-scale"><span>Current axis</span><select id="h-scale"><option value="1">±1 mA cm⁻²</option><option value="10" selected>±10 mA cm⁻²</option><option value="100">±100 mA cm⁻²</option></select></label></div>
+      <label class="check"><input type="checkbox" id="h-partial" checked> Show partial currents</label>
+      <dl class="readout">
+        <div><dt>Anodic Tafel slope</dt><dd id="r-h-ba"></dd></div>
+        <div><dt>Cathodic Tafel slope</dt><dd id="r-h-bc"></dd></div>
+        <div><dt>Charge-transfer resistance</dt><dd id="r-h-rct"></dd></div>
+        <div><dt>η needed for −10 mA cm⁻²</dt><dd id="r-h-eta10"></dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <div class="try"><strong>Try this.</strong> Lower i₀ to 10⁻⁶ A cm⁻²: the flat region around η = 0 widens and the electrode becomes strongly polarizable, because hundreds of millivolts are needed before any appreciable current flows. Raise i₀ to 10⁻¹ A cm⁻² and the curve becomes almost vertical, the behaviour of a non-polarizable, reference-like electrode. Move α away from 0.5 and the curve loses its symmetry about η = 0. Heat the cell and notice that, at fixed i₀, the curve actually gets less steep, since the exponents scale with 1/T.</div>
+</section>
+
+<section id="origin" aria-labelledby="t-origin">
+  <h2 id="t-origin"><span class="sec">§1</span>Where the equation comes from</h2>
+  <div class="prose">
+    <p>Take a simple electrode reaction, O + <i>n</i>e⁻ ⇌ R, and assume the solution is well mixed so that surface concentrations equal bulk concentrations. At the equilibrium potential both directions still run, at equal and opposite rates; the magnitude of either partial current is the exchange current density, <i>i</i>₀.</p>
+    <p>Applying an overpotential η changes the energy of electrons in the metal and so shifts the free energy of O + <i>n</i>e⁻ relative to R by −<i>nF</i>η. Only a fraction of that shift reaches the transition state. The cathodic barrier rises by α<i>nF</i>η and the anodic barrier falls by (1 − α)<i>nF</i>η:</p>
+    <div class="eq"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">Δ</mi><msubsup><mi>G</mi><mi>a</mi><mo lspace="0em" rspace="0em">‡</mo></msubsup><mo>=</mo><mi mathvariant="normal">Δ</mi><msubsup><mi>G</mi><mn>0</mn><mo lspace="0em" rspace="0em">‡</mo></msubsup><mo>−</mo><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo stretchy="false">)</mo><mtext> </mtext><mi>n</mi><mi>F</mi><mi>η</mi><mspace width="2em"/><mspace width="2em"/><mi mathvariant="normal">Δ</mi><msubsup><mi>G</mi><mi>c</mi><mo lspace="0em" rspace="0em">‡</mo></msubsup><mo>=</mo><mi mathvariant="normal">Δ</mi><msubsup><mi>G</mi><mn>0</mn><mo lspace="0em" rspace="0em">‡</mo></msubsup><mo>+</mo><mi>α</mi><mtext> </mtext><mi>n</mi><mi>F</mi><mi>η</mi></mrow><annotation encoding="application/x-tex">\Delta G^{\ddagger}_{a} = \Delta G^{\ddagger}_{0} - (1-\alpha)\,nF\eta \qquad\qquad \Delta G^{\ddagger}_{c} = \Delta G^{\ddagger}_{0} + \alpha\,nF\eta</annotation></semantics></math></span></div>
+    <p>Each partial current is proportional to exp(−Δ<i>G</i>‡/<i>RT</i>), and both equal <i>i</i>₀ in magnitude at η = 0, so</p>
+    <div class="eq"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>i</mi><mi>a</mi></msub><mo>=</mo><msub><mi>i</mi><mn>0</mn></msub><mtext> </mtext><mi>exp</mi><mo>⁡</mo><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mfrac><mrow><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo stretchy="false">)</mo><mtext> </mtext><mi>n</mi><mi>F</mi><mi>η</mi></mrow><mrow><mi>R</mi><mi>T</mi></mrow></mfrac><mo fence="true">)</mo></mrow><mspace width="2em"/><mspace width="2em"/><msub><mi>i</mi><mi>c</mi></msub><mo>=</mo><mo>−</mo><mtext> </mtext><msub><mi>i</mi><mn>0</mn></msub><mtext> </mtext><mi>exp</mi><mo>⁡</mo><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mo>−</mo><mfrac><mrow><mi>α</mi><mtext> </mtext><mi>n</mi><mi>F</mi><mi>η</mi></mrow><mrow><mi>R</mi><mi>T</mi></mrow></mfrac><mo fence="true">)</mo></mrow></mrow><annotation encoding="application/x-tex">i_a = i_0\,\exp\!\left(\frac{(1-\alpha)\,nF\eta}{RT}\right) \qquad\qquad i_c = -\,i_0\,\exp\!\left(-\frac{\alpha\,nF\eta}{RT}\right)</annotation></semantics></math></span></div>
+    <p>Their sum is the Butler–Volmer equation. Move the sliders below and follow the two barriers.</p>
+  </div>
+
+  <div class="lab">
+    <div class="sheet">
+      <canvas id="c-energy" role="img" aria-label="Free energy profile along the reaction coordinate at equilibrium and under an applied overpotential"></canvas>
+      <div class="legend">
+        <span style="color:var(--ink-soft)"><i class="dash"></i><span>profile at η = 0</span></span>
+        <span style="color:var(--ink)"><i></i><span>profile at the chosen η</span></span>
+      </div>
+      <p class="cap">Schematic profile with Δ<i>G</i>‡₀ = 40 kJ mol⁻¹, <i>n</i> = 1, 25 °C. The transition state is drawn closer to the side it resembles, a Brønsted-type reading of α.</p>
+    </div>
+    <div class="controls">
+      <div class="ctl"><label for="e-eta"><span>Overpotential, η</span><output id="o-e-eta"></output></label>
+        <input type="range" id="e-eta" min="-300" max="300" step="5" value="-100"></div>
+      <div class="ctl"><label for="e-alpha"><span>Transfer coefficient, α</span><output id="o-e-alpha"></output></label>
+        <input type="range" id="e-alpha" min="0.2" max="0.8" step="0.05" value="0.5"></div>
+      <dl class="readout">
+        <div><dt>Shift of O + e⁻, −Fη</dt><dd id="r-e-shift"></dd></div>
+        <div><dt>Anodic barrier, ΔG‡<sub>a</sub></dt><dd id="r-e-ga"></dd></div>
+        <div><dt>Cathodic barrier, ΔG‡<sub>c</sub></dt><dd id="r-e-gc"></dd></div>
+        <div><dt>Anodic rate, relative to equilibrium</dt><dd id="r-e-ka"></dd></div>
+        <div><dt>Cathodic rate, relative to equilibrium</dt><dd id="r-e-kc"></dd></div>
+        <div><dt>Net current, i / i₀</dt><dd id="r-e-net"></dd></div>
+      </dl>
+      <p class="state" id="r-e-state"></p>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>Two remarks are worth stressing with graduate students. First, <i>i</i>₀ is not a material constant. For a single-step reaction it depends on the standard rate constant <i>k</i>⁰ and on the bulk concentrations:</p>
+    <div class="eq"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>i</mi><mn>0</mn></msub><mo>=</mo><mi>n</mi><mi>F</mi><msup><mi>k</mi><mn>0</mn></msup><mtext> </mtext><mo stretchy="false">(</mo><msubsup><mi>C</mi><mi>O</mi><mo lspace="0em" rspace="0em">∗</mo></msubsup><msup><mo stretchy="false">)</mo><mrow><mn>1</mn><mo>−</mo><mi>α</mi></mrow></msup><mtext> </mtext><mo stretchy="false">(</mo><msubsup><mi>C</mi><mi>R</mi><mo lspace="0em" rspace="0em">∗</mo></msubsup><msup><mo stretchy="false">)</mo><mi>α</mi></msup></mrow><annotation encoding="application/x-tex">i_0 = nFk^{0}\,(C_O^{*})^{1-\alpha}\,(C_R^{*})^{\alpha}</annotation></semantics></math></span></div>
+    <p>Second, writing the exponents as α<i>n</i> and (1 − α)<i>n</i> strictly applies to one elementary step. Real reactions such as hydrogen or oxygen evolution proceed through several steps, and the measured coefficients are <em>apparent</em> transfer coefficients, α<sub>a</sub> and α<sub>c</sub>, which need not add up to <i>n</i>. The 2014 IUPAC technical report on the transfer coefficient recommends this operational definition.</p>
+  </div>
+</section>
+
+<section id="limits" aria-labelledby="t-limits">
+  <h2 id="t-limits"><span class="sec">§2</span>Two limits worth knowing by heart</h2>
+  <div class="prose">
+    <p><strong>Close to equilibrium.</strong> When <i>nF</i>|η|/<i>RT</i> ≪ 1, both exponentials can be expanded to first order and the current becomes proportional to the overpotential. The slope defines the charge-transfer resistance, the same quantity you fit as <i>R</i><sub>ct</sub> in impedance spectra:</p>
+    <div class="eq"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>i</mi><mo>≈</mo><msub><mi>i</mi><mn>0</mn></msub><mtext> </mtext><mfrac><mrow><mi>n</mi><mi>F</mi></mrow><mrow><mi>R</mi><mi>T</mi></mrow></mfrac><mtext> </mtext><mi>η</mi><mspace width="2em"/><mo>⟹</mo><mspace width="2em"/><msub><mi>R</mi><mrow><mi>c</mi><mi>t</mi></mrow></msub><mo>=</mo><mfrac><mi>η</mi><mi>i</mi></mfrac><mo>=</mo><mfrac><mrow><mi>R</mi><mi>T</mi></mrow><mrow><mi>n</mi><mi>F</mi><mtext> </mtext><msub><mi>i</mi><mn>0</mn></msub></mrow></mfrac></mrow><annotation encoding="application/x-tex">i \approx i_0\,\frac{nF}{RT}\,\eta \qquad\Longrightarrow\qquad R_{ct} = \frac{\eta}{i} = \frac{RT}{nF\,i_0}</annotation></semantics></math></span></div>
+    <p><strong>Far from equilibrium.</strong> When |η| is large, the reverse exponential becomes negligible and the logarithm of the current is linear in η. This is the Tafel equation, with slopes that carry the transfer coefficient:</p>
+    <div class="eq"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>η</mi><mo>=</mo><mo>±</mo><mtext> </mtext><mi>b</mi><mtext> </mtext><msub><mrow><mi>log</mi><mo>⁡</mo></mrow><mn>10</mn></msub><mfrac><mrow><mi mathvariant="normal">∣</mi><mi>i</mi><mi mathvariant="normal">∣</mi></mrow><msub><mi>i</mi><mn>0</mn></msub></mfrac><mo separator="true">,</mo><mspace width="2em"/><msub><mi>b</mi><mi>a</mi></msub><mo>=</mo><mfrac><mrow><mn>2.303</mn><mtext> </mtext><mi>R</mi><mi>T</mi></mrow><mrow><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo stretchy="false">)</mo><mtext> </mtext><mi>n</mi><mi>F</mi></mrow></mfrac><mo separator="true">,</mo><mspace width="2em"/><msub><mi>b</mi><mi>c</mi></msub><mo>=</mo><mfrac><mrow><mn>2.303</mn><mtext> </mtext><mi>R</mi><mi>T</mi></mrow><mrow><mi>α</mi><mtext> </mtext><mi>n</mi><mi>F</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">\eta = \pm\, b\,\log_{10}\frac{|i|}{i_0}, \qquad b_a = \frac{2.303\,RT}{(1-\alpha)\,nF}, \qquad b_c = \frac{2.303\,RT}{\alpha\,nF}</annotation></semantics></math></span></div>
+    <p>The ratio of the reverse to the forward partial current is exp(−<i>nF</i>|η|/<i>RT</i>), independent of α, so the back reaction drops below 1% once |η| exceeds about 118/<i>n</i> mV at 25 °C. The linear approximation, by contrast, is within 1% only up to about 12 mV when α = 0.5, and only a few millivolts when α departs from 0.5.</p>
+  </div>
+
+  <div class="lab two">
+    <div class="sheet">
+      <canvas id="c-lin" role="img" aria-label="Butler–Volmer current and its linear approximation near equilibrium"></canvas>
+      <div class="legend">
+        <span style="color:var(--ink)"><i></i><span>Butler–Volmer</span></span>
+        <span style="color:var(--transport)"><i class="dash"></i><span>linear approximation</span></span>
+      </div>
+    </div>
+    <div class="sheet">
+      <canvas id="c-tafel" role="img" aria-label="Tafel plot of the logarithm of current against overpotential with extrapolated Tafel lines"></canvas>
+      <div class="legend">
+        <span style="color:var(--ink)"><i></i><span>|i| from Butler–Volmer</span></span>
+        <span style="color:var(--anodic)"><i class="dash"></i><span>anodic Tafel line</span></span>
+        <span style="color:var(--cathodic)"><i class="dash"></i><span>cathodic Tafel line</span></span>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="ctl"><label for="l-i0"><span>i₀</span><output id="o-l-i0"></output></label>
+        <input type="range" id="l-i0" min="-6" max="-1" step="0.1" value="-3"></div>
+      <div class="ctl"><label for="l-alpha"><span>α</span><output id="o-l-alpha"></output></label>
+        <input type="range" id="l-alpha" min="0.2" max="0.8" step="0.01" value="0.5"></div>
+      <div class="ctl"><label for="l-eta"><span>Test overpotential, η</span><output id="o-l-eta"></output></label>
+        <input type="range" id="l-eta" min="1" max="300" step="1" value="10"></div>
+      <dl class="readout">
+        <div><dt>R<sub>ct</sub></dt><dd id="r-l-rct"></dd></div>
+        <div><dt>b<sub>a</sub> / b<sub>c</sub></dt><dd id="r-l-b"></dd></div>
+        <div><dt>Error of linear form at +η</dt><dd id="r-l-elin"></dd></div>
+        <div><dt>Error of Tafel form at +η</dt><dd id="r-l-etaf"></dd></div>
+      </dl>
+      <p class="note" style="margin-top:10px">Both plots use <i>n</i> = 1 and 25 °C. The Tafel lines meet at η = 0, at log <i>i</i>₀.</p>
+    </div>
+  </div>
+</section>
+
+<section id="transport" aria-labelledby="t-transport">
+  <h2 id="t-transport"><span class="sec">§3</span>When mass transport joins in</h2>
+  <div class="prose">
+    <p>Everything so far assumed that surface concentrations equal bulk concentrations. At higher currents the reactant is consumed at the surface faster than it arrives, and the complete form of the equation keeps the surface-to-bulk ratios:</p>
+    <div class="eq"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>i</mi><mo>=</mo><msub><mi>i</mi><mn>0</mn></msub><mrow><mo fence="true">[</mo><mfrac><mrow><msub><mi>C</mi><mi>R</mi></msub><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo></mrow><msubsup><mi>C</mi><mi>R</mi><mo lspace="0em" rspace="0em">∗</mo></msubsup></mfrac><mtext> </mtext><msup><mi>e</mi><mrow><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo stretchy="false">)</mo><mi>n</mi><mi>f</mi><mi>η</mi></mrow></msup><mo>−</mo><mfrac><mrow><msub><mi>C</mi><mi>O</mi></msub><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo></mrow><msubsup><mi>C</mi><mi>O</mi><mo lspace="0em" rspace="0em">∗</mo></msubsup></mfrac><mtext> </mtext><msup><mi>e</mi><mrow><mo>−</mo><mi>α</mi><mi>n</mi><mi>f</mi><mi>η</mi></mrow></msup><mo fence="true">]</mo></mrow><mo separator="true">,</mo><mspace width="2em"/><mi>f</mi><mo>=</mo><mfrac><mi>F</mi><mrow><mi>R</mi><mi>T</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">i = i_0\left[\frac{C_R(0)}{C_R^{*}}\,e^{(1-\alpha)nf\eta} - \frac{C_O(0)}{C_O^{*}}\,e^{-\alpha nf\eta}\right], \qquad f=\frac{F}{RT}</annotation></semantics></math></span></div>
+    <p>With a steady diffusion layer, each ratio is fixed by the limiting current of its species:</p>
+    <div class="eq"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mrow><msub><mi>C</mi><mi>R</mi></msub><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo></mrow><msubsup><mi>C</mi><mi>R</mi><mo lspace="0em" rspace="0em">∗</mo></msubsup></mfrac><mo>=</mo><mn>1</mn><mo>−</mo><mfrac><mi>i</mi><msub><mi>i</mi><mrow><mi>L</mi><mo separator="true">,</mo><mi>a</mi></mrow></msub></mfrac><mo separator="true">,</mo><mspace width="2em"/><mfrac><mrow><msub><mi>C</mi><mi>O</mi></msub><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo></mrow><msubsup><mi>C</mi><mi>O</mi><mo lspace="0em" rspace="0em">∗</mo></msubsup></mfrac><mo>=</mo><mn>1</mn><mo>+</mo><mfrac><mi>i</mi><mrow><mi mathvariant="normal">∣</mi><msub><mi>i</mi><mrow><mi>L</mi><mo separator="true">,</mo><mi>c</mi></mrow></msub><mi mathvariant="normal">∣</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">\frac{C_R(0)}{C_R^{*}} = 1-\frac{i}{i_{L,a}}, \qquad \frac{C_O(0)}{C_O^{*}} = 1+\frac{i}{|i_{L,c}|}</annotation></semantics></math></span></div>
+    <p>Substituting and solving for <i>i</i> gives a closed form that moves smoothly from kinetic control to transport control:</p>
+    <div class="eq"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>i</mi><mo>=</mo><mfrac><mrow><msup><mi>e</mi><mrow><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo stretchy="false">)</mo><mi>n</mi><mi>f</mi><mi>η</mi></mrow></msup><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>α</mi><mi>n</mi><mi>f</mi><mi>η</mi></mrow></msup></mrow><mrow><mstyle scriptlevel="0" displaystyle="true"><mfrac><mn>1</mn><msub><mi>i</mi><mn>0</mn></msub></mfrac></mstyle><mo>+</mo><mstyle scriptlevel="0" displaystyle="true"><mfrac><msup><mi>e</mi><mrow><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo stretchy="false">)</mo><mi>n</mi><mi>f</mi><mi>η</mi></mrow></msup><msub><mi>i</mi><mrow><mi>L</mi><mo separator="true">,</mo><mi>a</mi></mrow></msub></mfrac></mstyle><mo>+</mo><mstyle scriptlevel="0" displaystyle="true"><mfrac><msup><mi>e</mi><mrow><mo>−</mo><mi>α</mi><mi>n</mi><mi>f</mi><mi>η</mi></mrow></msup><mrow><mi mathvariant="normal">∣</mi><msub><mi>i</mi><mrow><mi>L</mi><mo separator="true">,</mo><mi>c</mi></mrow></msub><mi mathvariant="normal">∣</mi></mrow></mfrac></mstyle></mrow></mfrac></mrow><annotation encoding="application/x-tex">i = \frac{e^{(1-\alpha)nf\eta} - e^{-\alpha nf\eta}}{\dfrac{1}{i_0} + \dfrac{e^{(1-\alpha)nf\eta}}{i_{L,a}} + \dfrac{e^{-\alpha nf\eta}}{|i_{L,c}|}}</annotation></semantics></math></span></div>
+    <p>Far along one branch this reduces to the Koutecký–Levich form used with rotating disk electrodes to extract the purely kinetic current <i>i</i><sub>k</sub>:</p>
+    <div class="eq"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mn>1</mn><mi>i</mi></mfrac><mo>=</mo><mfrac><mn>1</mn><msub><mi>i</mi><mi>k</mi></msub></mfrac><mo>+</mo><mfrac><mn>1</mn><msub><mi>i</mi><mi>L</mi></msub></mfrac></mrow><annotation encoding="application/x-tex">\frac{1}{i} = \frac{1}{i_k} + \frac{1}{i_L}</annotation></semantics></math></span></div>
+  </div>
+
+  <div class="lab two">
+    <div class="sheet">
+      <canvas id="c-mt" role="img" aria-label="Polarization curve with and without mass-transport limitation"></canvas>
+      <div class="legend">
+        <span style="color:var(--ink)"><i></i><span>with mass transport</span></span>
+        <span style="color:var(--ink-soft)"><i class="dash"></i><span>pure kinetics</span></span>
+        <span style="color:var(--transport)"><i class="dash"></i><span>±i<sub>L</sub></span></span>
+      </div>
+    </div>
+    <div class="sheet">
+      <canvas id="c-mtlog" role="img" aria-label="Tafel plot showing curvature caused by mass-transport limitation"></canvas>
+      <div class="legend">
+        <span style="color:var(--ink)"><i></i><span>with mass transport</span></span>
+        <span style="color:var(--ink-soft)"><i class="dash"></i><span>pure kinetics</span></span>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="ctl"><label for="m-i0"><span>i₀</span><output id="o-m-i0"></output></label>
+        <input type="range" id="m-i0" min="-7" max="0" step="0.1" value="-4"></div>
+      <div class="ctl"><label for="m-iL"><span>Limiting current, i<sub>L</sub></span><output id="o-m-iL"></output></label>
+        <input type="range" id="m-iL" min="0" max="7" step="1" value="3" style="accent-color:var(--transport)"></div>
+      <div class="ctl"><label for="m-eta"><span>Overpotential, η</span><output id="o-m-eta"></output></label>
+        <input type="range" id="m-eta" min="-500" max="500" step="5" value="-200"></div>
+      <dl class="readout">
+        <div><dt>Current density, i</dt><dd id="r-m-i"></dd></div>
+        <div><dt>Kinetic current, i<sub>k</sub></dt><dd id="r-m-ik"></dd></div>
+        <div><dt>C<sub>O</sub>(0) / C<sub>O</sub>*</dt><dd id="r-m-co"></dd></div>
+        <div><dt>C<sub>R</sub>(0) / C<sub>R</sub>*</dt><dd id="r-m-cr"></dd></div>
+      </dl>
+      <p class="state" id="r-m-state"></p>
+      <p class="note">α = 0.5, <i>n</i> = 1, 25 °C, equal limiting currents for O and R.</p>
+    </div>
+  </div>
+
+  <div class="try"><strong>Try this.</strong> Set i₀ well above i<sub>L</sub>, for example 1 A cm⁻² against 5 mA cm⁻². The curve turns into a symmetric reversible wave: the electrode is so fast that the current is governed only by transport and the Nernst equation, and the polarization curve no longer contains kinetic information. Then drop i₀ to 10⁻⁶ A cm⁻² and watch a genuine Tafel region open up before the plateau.</div>
+</section>
+
+<section id="examples" aria-labelledby="t-examples">
+  <h2 id="t-examples"><span class="sec">§4</span>Worked examples</h2>
+
+  <h3>Example A. Why platinum and mercury behave so differently for hydrogen evolution</h3>
+  <div class="prose">
+    <p>In the Tafel region the overpotential needed to reach a target current density follows directly from i₀ and the Tafel slope. The usual benchmark for water-splitting electrocatalysts is 10 mA cm⁻²:</p>
+    <div class="eq"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>η</mi><mi>j</mi></msub><mo>=</mo><mi>b</mi><mtext> </mtext><msub><mrow><mi>log</mi><mo>⁡</mo></mrow><mn>10</mn></msub><mfrac><mrow><mi mathvariant="normal">∣</mi><mi>j</mi><mi mathvariant="normal">∣</mi></mrow><msub><mi>i</mi><mn>0</mn></msub></mfrac></mrow><annotation encoding="application/x-tex">\eta_{j} = b\,\log_{10}\frac{|j|}{i_0}</annotation></semantics></math></span></div>
+    <p>The chart applies this to hydrogen evolution in acid using approximate exchange current densities from the classic volcano compilations. The Tafel slope selector shows the theoretical values at 25 °C for the three textbook rate-determining steps.</p>
+  </div>
+  <div class="lab">
+    <div class="sheet">
+      <canvas id="c-her" role="img" aria-label="Bar chart of hydrogen evolution overpotential for several metals"></canvas>
+      <p class="cap">Approximate log i₀ (A cm⁻²) in 1 M acid at room temperature: Pt −3.1, Pd −3.0, Ni −5.2, Fe −5.8, Cu −7.0, Pb −12.0, Hg −12.3. Published values scatter by about one decade depending on surface preparation. Ohmic and transport losses are ignored.</p>
+    </div>
+    <div class="controls">
+      <div class="ctl"><span class="lbl">Tafel slope</span>
+        <div class="radios" role="radiogroup" aria-label="Tafel slope">
+          <label><input type="radio" name="her-b" value="118" checked> 118 mV dec⁻¹, Volmer step limiting</label>
+          <label><input type="radio" name="her-b" value="40"> 40 mV dec⁻¹, Heyrovsky step limiting</label>
+          <label><input type="radio" name="her-b" value="30"> 30 mV dec⁻¹, Tafel step limiting</label>
+        </div></div>
+      <div class="ctl"><label for="her-j"><span>Target current density</span><select id="her-j"><option value="10" selected>10 mA cm⁻²</option><option value="100">100 mA cm⁻²</option></select></label></div>
+      <p class="note">Every decade of i₀ costs one Tafel slope of overpotential. That is why catalyst development, including work on transition-metal phosphides such as FeP, targets both a high i₀ and a low Tafel slope.</p>
+    </div>
+  </div>
+  <p class="note prose">Caution for discussion: the 40 and 30 mV dec⁻¹ values assume low hydrogen coverage and a symmetric barrier. A measured slope is a clue to the mechanism, not a proof of it.</p>
+
+  <h3>Example B. Exchange current from linear polarization, and the corrosion analogue</h3>
+  <div class="prose">
+    <p>An inert electrode in a solution with <i>C</i><sub>O</sub>* = <i>C</i><sub>R</sub>* = 5 mM of a one-electron redox couple is polarized a few millivolts around its equilibrium potential at 25 °C in a well-stirred cell. The measured current densities are:</p>
+  </div>
+  <table class="data" id="t-lpr" aria-label="Linear polarization data"></table>
+  <div class="prose"><p>Find the charge-transfer resistance, the exchange current density and the standard rate constant.</p></div>
+  <details>
+    <summary>Show the solution</summary>
+    <ol class="steps" id="s-lpr"></ol>
+  </details>
+
+  <div class="prose">
+    <p style="margin-top:18px">The same idea underlies linear polarization resistance (LPR) measurements in corrosion. At the corrosion potential two different reactions, metal dissolution and a cathodic reaction, each obey Tafel kinetics, and the polarization resistance <i>R</i><sub>p</sub> is related to the corrosion current by the Stern–Geary equation:</p>
+    <div class="eq"><span class="katex"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>i</mi><mrow><mi>c</mi><mi>o</mi><mi>r</mi><mi>r</mi></mrow></msub><mo>=</mo><mfrac><mi>B</mi><msub><mi>R</mi><mi>p</mi></msub></mfrac><mo separator="true">,</mo><mspace width="2em"/><mi>B</mi><mo>=</mo><mfrac><mrow><msub><mi>b</mi><mi>a</mi></msub><mtext> </mtext><msub><mi>b</mi><mi>c</mi></msub></mrow><mrow><mn>2.303</mn><mtext> </mtext><mo stretchy="false">(</mo><msub><mi>b</mi><mi>a</mi></msub><mo>+</mo><msub><mi>b</mi><mi>c</mi></msub><mo stretchy="false">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">i_{corr} = \frac{B}{R_p}, \qquad B = \frac{b_a\,b_c}{2.303\,(b_a + b_c)}</annotation></semantics></math></span></div>
+    <p>A carbon steel coupon in a deaerated brine gives <i>R</i><sub>p</sub> = 1.5 kΩ cm², with <i>b</i><sub>a</sub> = 60 mV dec⁻¹ and <i>b</i><sub>c</sub> = 120 mV dec⁻¹. Estimate the corrosion rate.</p>
+  </div>
+  <details>
+    <summary>Show the solution</summary>
+    <ol class="steps" id="s-sg"></ol>
+  </details>
+
+  <h3>Example C. Tafel analysis of a noisy polarization curve</h3>
+  <div class="prose">
+    <p>The dataset mimics a cathodic sweep of 60 points with 3% random noise, an unknown α and i₀, and a limiting current that bends the curve at high overpotential. Choose the window you believe is Tafel-linear, read the fit, and only then reveal the true values.</p>
+    <p>The second panel takes the derivative of the same data. It plots the local Tafel slope, dη/d log |i| evaluated over a short sliding window, against η or against |i|. A genuine Tafel region appears as a plateau. Near equilibrium the slope collapses toward zero, because the current there is linear in η rather than exponential, and at high overpotential it runs away as the current approaches the limiting value. Reading the plateau is a more honest way to choose the fitting window than trusting R², which stays close to 1 even over a curved stretch.</p>
+  </div>
+  <div class="lab two">
+    <div class="sheet">
+      <canvas id="c-fit" role="img" aria-label="Noisy Tafel data with an adjustable fitting window and fitted line"></canvas>
+      <div class="legend">
+        <span style="color:var(--cathodic)"><i></i><span>points inside the window</span></span>
+        <span style="color:var(--cathodic)"><i class="dash"></i><span>fitted Tafel line</span></span>
+      </div>
+    </div>
+    <div class="sheet">
+      <canvas id="c-slope" role="img" aria-label="Local Tafel slope from the derivative of the data, against overpotential or current density"></canvas>
+      <div class="legend">
+        <span style="color:var(--cathodic)"><i></i><span>local slope, inside the window</span></span>
+        <span style="color:var(--cathodic)"><i class="dash"></i><span>slope of the fit</span></span>
+        <span style="color:var(--ink)"><i class="dash"></i><span>true slope, once revealed</span></span>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="ctl"><label for="t-a"><span>Window edge</span><output id="o-t-a"></output></label>
+        <input type="range" id="t-a" min="-600" max="-10" step="10" value="-300" style="accent-color:var(--cathodic)"></div>
+      <div class="ctl"><label for="t-b"><span>Other window edge</span><output id="o-t-b"></output></label>
+        <input type="range" id="t-b" min="-600" max="-10" step="10" value="-60" style="accent-color:var(--cathodic)"></div>
+      <div class="ctl"><label for="t-x"><span>Plot the slope against</span>
+        <select id="t-x"><option value="eta" selected>η</option><option value="j">|i|</option></select></label></div>
+      <div class="ctl"><label for="t-smooth"><span>Derivative window</span>
+        <select id="t-smooth"><option value="2">5 points</option><option value="3" selected>7 points</option><option value="5">11 points</option></select></label></div>
+      <dl class="readout">
+        <div><dt>Points in window</dt><dd id="r-t-n"></dd></div>
+        <div><dt>Cathodic Tafel slope</dt><dd id="r-t-b"></dd></div>
+        <div><dt>Apparent α</dt><dd id="r-t-alpha"></dd></div>
+        <div><dt>i₀ from intercept</dt><dd id="r-t-i0"></dd></div>
+        <div><dt>R²</dt><dd id="r-t-r2"></dd></div>
+        <div><dt>Median local slope in window</dt><dd id="r-t-med"></dd></div>
+      </dl>
+      <p class="state" id="r-t-true" hidden></p>
+      <div style="margin-top:12px">
+        <button type="button" id="t-reveal">Show true values</button>
+        <button type="button" id="t-new">New dataset</button>
+      </div>
+    </div>
+  </div>
+  <p class="note prose">The default window deliberately includes points too close to equilibrium. A defensible window starts beyond about 120 mV, where the anodic back reaction is below 1%, and stops before the curve bends toward the limiting current. With real data, correct for ohmic drop first and, if a plateau is available, use i<sub>k</sub> = i·i<sub>L</sub>/(i<sub>L</sub> − i). A useful exercise: move the edges until the local slope is flat, then compare the median of the plateau with the slope of the least-squares fit and with the true value.</p>
+</section>
+
+<section id="check" class="qa" aria-labelledby="t-check">
+  <h2 id="t-check"><span class="sec">§5</span>Check your understanding</h2>
+  <details>
+    <summary>Two catalysts have the same Tafel slope, 120 mV dec⁻¹, but their exchange current densities differ by four orders of magnitude. How much extra overpotential does the poorer one need for the same current in the Tafel region?</summary>
+    <p>About 480 mV. The Tafel lines are parallel and shifted by four decades along log |i|, and each decade costs one Tafel slope.</p>
+  </details>
+  <details>
+    <summary>Why is an electrode with a very large i₀ a good reference electrode?</summary>
+    <p>Its charge-transfer resistance, <i>RT</i>/<i>nFi</i>₀, is tiny. The small currents drawn by the measuring circuit barely shift its potential, so it is effectively non-polarizable.</p>
+  </details>
+  <details>
+    <summary>A cathodic Tafel slope of 60 mV dec⁻¹ is measured at 25 °C for a reaction that consumes two electrons overall. What does it tell you?</summary>
+    <p>The apparent cathodic transfer coefficient is about 1 (59 mV/<i>b</i>). A single elementary one-electron step with α ≈ 0.5 would give about 118 mV dec⁻¹, so the data point to a multistep mechanism, typically a fast one-electron pre-equilibrium followed by a rate-determining chemical step. Coverage effects can produce similar slopes, so confirm with reaction orders or impedance.</p>
+  </details>
+  <details>
+    <summary>The cell is heated from 25 °C to 60 °C and α stays at 0.5. What happens to the Tafel slope and to i₀?</summary>
+    <p>The slope is proportional to <i>T</i>: it rises from 118 to 132 mV dec⁻¹. The exchange current density grows exponentially following an Arrhenius law with the apparent activation energy. In practice the larger i₀ usually wins, so the overpotential at a given current falls.</p>
+  </details>
+  <details>
+    <summary>If a Tafel line is fitted where mass transport already matters, are α and i₀ over- or underestimated?</summary>
+    <p>The points fall below the kinetic line as they approach the plateau, so the fitted slope is too large and α is underestimated. The flatter line usually extrapolates to a higher value at η = 0, overestimating i₀. Drag the window of Example C into the bend to see it.</p>
+  </details>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Conventions: current densities refer to geometric area; anodic currents are positive; η = <i>E</i> − <i>E</i><sub>eq</sub>. Constants: <i>F</i> = 96 485 C mol⁻¹, <i>R</i> = 8.314 J mol⁻¹ K⁻¹. The page works offline; only the typefaces load from the web.</p>
+    <p>Prepared by Sergio Blanco, PhD. Connect on <a href="https://www.linkedin.com/in/sergio-blanco-professor/" target="_blank" rel="noopener">LinkedIn</a>.</p>
+    <p>Further reading</p>
+    <ol>
+      <li>A. J. Bard, L. R. Faulkner, H. H. White, <i>Electrochemical Methods: Fundamentals and Applications</i>, 3rd ed., Wiley, 2022.</li>
+      <li>R. Guidelli et al., Defining the transfer coefficient in electrochemistry: an assessment (IUPAC Technical Report), <i>Pure Appl. Chem.</i> 86 (2014) 245–258.</li>
+      <li>S. Trasatti, Work function, electronegativity, and electrochemical behaviour of metals III: electrolytic hydrogen evolution in acid solutions, <i>J. Electroanal. Chem.</i> 39 (1972) 163–184.</li>
+      <li>T. Shinagawa, A. T. Garcia-Esparza, K. Takanabe, Insight on Tafel slopes from a microkinetic analysis of aqueous electrocatalysis for energy conversion, <i>Sci. Rep.</i> 5 (2015) 13801.</li>
+      <li>M. Stern, A. L. Geary, Electrochemical polarization I: a theoretical analysis of the shape of polarization curves, <i>J. Electrochem. Soc.</i> 104 (1957) 56–63.</li>
+      <li>ASTM G102, Standard Practice for Calculation of Corrosion Rates and Related Information from Electrochemical Measurements.</li>
+    </ol>
+  </div>
+</footer>
+
+<script>
+(function(){
+"use strict";
+const F = 96485.33212, R = 8.314462618, LN10 = Math.LN10, T25 = 298.15;
+const $ = id => document.getElementById(id);
+const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- formatting ---------- */
+const SUP = {"0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹","-":"⁻"};
+const sup = n => String(n).split("").map(c => SUP[c] || c).join("");
+const minus = s => String(s).replace(/-/g, "−");
+const fx = (v, d) => minus(v.toFixed(d));
+function sci(v, sig){
+  sig = sig || 2;
+  if (v === 0 || !isFinite(v)) return "0";
+  let e = Math.floor(Math.log10(Math.abs(v)));
+  let m = v / Math.pow(10, e);
+  if (Math.abs(+m.toFixed(sig-1)) >= 10) { m /= 10; e += 1; }
+  return minus(m.toFixed(sig-1)) + " × 10" + sup(e);
+}
+function smart(v, unit){
+  const a = Math.abs(v);
+  if (a >= 0.01 && a < 1e4) return fx(v, a >= 100 ? 0 : a >= 10 ? 1 : 2) + " " + unit;
+  return sci(v, 2) + " " + unit;
+}
+function ohms(v){ // ohm cm2
+  if (v >= 1e6) return sci(v,2) + " Ω cm²";
+  if (v >= 1e3) return fx(v/1e3, v>=1e5?0:1) + " kΩ cm²";
+  if (v >= 1) return fx(v, v>=100?0:1) + " Ω cm²";
+  return fx(v*1e3, 1) + " mΩ cm²";
+}
+
+/* ---------- physics ---------- */
+const fT = T => F / (R * T);
+function bvParts(eta, i0, a, n, T){
+  const x = n * fT(T) * eta;
+  return { ia: i0 * Math.exp((1-a)*x), ic: -i0 * Math.exp(-a*x) };
+}
+const bv = (eta, i0, a, n, T) => { const p = bvParts(eta,i0,a,n,T); return p.ia + p.ic; };
+function bvMT(eta, i0, a, n, T, iLa, iLc){
+  const x = n * fT(T) * eta, ea = Math.exp((1-a)*x), ec = Math.exp(-a*x);
+  return (ea - ec) / (1/i0 + ea/iLa + ec/iLc);
+}
+function solveEta(target, fn, lo, hi){ // bisection, fn monotonic increasing
+  let flo = fn(lo) - target;
+  for (let k=0;k<200;k++){
+    const mid = (lo+hi)/2, fm = fn(mid) - target;
+    if ((fm > 0) === (flo > 0)) { lo = mid; flo = fm; } else hi = mid;
+  }
+  return (lo+hi)/2;
+}
+
+/* ---------- plotting ---------- */
+function niceStep(range, count){
+  const raw = range / count, p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
+  return (m < 1.5 ? 1 : m < 3 ? 2 : m < 7 ? 5 : 10) * p;
+}
+function ticks(min, max, count){
+  const st = niceStep(max - min, count), out = [];
+  for (let v = Math.ceil(min/st - 1e-9)*st; v <= max + st*1e-9; v += st) out.push(+v.toFixed(12));
+  return out;
+}
+function defFmt(v){
+  if (Math.abs(v) < 1e-12) return "0";
+  const a = Math.abs(v);
+  if (a >= 1e4 || a < 1e-3) return sci(v,1);
+  return minus(String(+v.toPrecision(4)));
+}
+const logFmt = v => Number.isInteger(v) ? "10" + sup(v) : "";
+function intTicks(min, max, maxCount){
+  const span = Math.floor(max) - Math.ceil(min);
+  const step = Math.max(1, Math.ceil(span / maxCount));
+  const out = [];
+  for (let v = Math.ceil(min); v <= max; v += step) out.push(v);
+  return out;
+}
+
+function plot(canvas, o){
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  if (!w || !h) return null;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(w*dpr); canvas.height = Math.round(h*dpr);
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,w,h);
+  const m = Object.assign({l:70, r:14, t:12, b:50}, o.margin || {});
+  const pw = w - m.l - m.r, ph = h - m.t - m.b;
+  const X = x => m.l + (x - o.xmin) / (o.xmax - o.xmin) * pw;
+  const Y = y => m.t + (1 - (y - o.ymin) / (o.ymax - o.ymin)) * ph;
+  const ink = cssv("--ink"), soft = cssv("--ink-soft");
+  const sans = cssv("--sans");
+  const xt = o.xticks || ticks(o.xmin, o.xmax, Math.max(3, Math.round(pw/85)));
+  const yt = o.yticks || ticks(o.ymin, o.ymax, Math.max(3, Math.round(ph/55)));
+
+  ctx.lineWidth = 1; ctx.strokeStyle = cssv("--plot-grid");
+  xt.forEach(v => { const px = Math.round(X(v))+.5; ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t+ph); ctx.stroke(); });
+  yt.forEach(v => { const py = Math.round(Y(v))+.5; ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l+pw, py); ctx.stroke(); });
+  ctx.strokeStyle = soft;
+  if (!o.noZero && !o.logY && o.ymin < 0 && o.ymax > 0){ const py=Math.round(Y(0))+.5; ctx.beginPath(); ctx.moveTo(m.l,py); ctx.lineTo(m.l+pw,py); ctx.stroke(); }
+  if (!o.noZero && o.xmin < 0 && o.xmax > 0){ const px=Math.round(X(0))+.5; ctx.beginPath(); ctx.moveTo(px,m.t); ctx.lineTo(px,m.t+ph); ctx.stroke(); }
+  ctx.strokeStyle = ink; ctx.lineWidth = 1.2; ctx.strokeRect(m.l+.5, m.t+.5, pw-1, ph-1);
+
+  ctx.font = "500 12.5px " + sans; ctx.fillStyle = soft;
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  xt.forEach(v => ctx.fillText((o.xfmt||defFmt)(v), X(v), m.t+ph+6));
+  ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  yt.forEach(v => ctx.fillText((o.yfmt||defFmt)(v), m.l-7, Y(v)));
+  ctx.font = "600 13.5px " + sans; ctx.fillStyle = ink;
+  ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+  ctx.fillText(o.xlabel || "", m.l + pw/2, h - 4);
+  ctx.save(); ctx.translate(15, m.t + ph/2); ctx.rotate(-Math.PI/2); ctx.textBaseline = "middle";
+  ctx.fillText(o.ylabel || "", 0, 0); ctx.restore();
+
+  ctx.save(); ctx.beginPath(); ctx.rect(m.l+1, m.t+1, pw-2, ph-2); ctx.clip();
+  (o.bands||[]).forEach(b => { ctx.fillStyle = b.color; ctx.fillRect(X(b.x0), m.t, X(b.x1)-X(b.x0), ph); });
+  const line = (x0,y0,x1,y1,color,dash,width) => { ctx.strokeStyle=color; ctx.lineWidth=width||1.5; ctx.setLineDash(dash||[]); ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke(); ctx.setLineDash([]); };
+  (o.hlines||[]).forEach(l => line(m.l, Y(l.y), m.l+pw, Y(l.y), l.color, l.dash, l.width));
+  (o.vlines||[]).forEach(l => line(X(l.x), m.t, X(l.x), m.t+ph, l.color, l.dash, l.width));
+  (o.series||[]).forEach(s => {
+    ctx.strokeStyle = s.color; ctx.lineWidth = s.width || 2.4; ctx.setLineDash(s.dash || []);
+    ctx.lineJoin = "round"; ctx.beginPath();
+    let pen = false; const N = s.upto != null ? s.upto : s.x.length;
+    for (let k = 0; k < N; k++){
+      const yv = s.y[k];
+      if (!isFinite(yv)) { pen = false; continue; }
+      const px = X(s.x[k]), py = Math.max(-5000, Math.min(5000, Y(yv)));
+      if (!pen) { ctx.moveTo(px, py); pen = true; } else ctx.lineTo(px, py);
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+  });
+  (o.points||[]).forEach(p => {
+    ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), p.r || 3.2, 0, 2*Math.PI);
+    if (p.hollow){ ctx.fillStyle = cssv("--sheet"); ctx.fill(); ctx.lineWidth = 1.8; ctx.strokeStyle = p.color; ctx.stroke(); }
+    else { ctx.fillStyle = p.color; ctx.fill(); }
+  });
+  if (o.after) o.after(ctx, X, Y, {m, pw, ph, sans, ink, soft});
+  ctx.restore();
+  return {X, Y, ctx, m, pw, ph};
+}
+function linspace(a, b, N){ const out = new Array(N); for (let k=0;k<N;k++) out[k] = a + (b-a)*k/(N-1); return out; }
+
+const drawers = [];
+function register(fn){ drawers.push(fn); }
+function redrawAll(){ drawers.forEach(fn => fn()); }
+function bindInputs(ids, fn){ ids.forEach(id => { const el = $(id); el.addEventListener("input", fn); el.addEventListener("change", fn); }); register(fn); }
+
+/* ---------- hero ---------- */
+let heroProgress = reduceMotion ? 1 : 0;
+function drawHero(){
+  const li0 = +$("h-i0").value, a = +$("h-alpha").value, T = +$("h-T").value, n = +$("h-n").value;
+  const scale = +$("h-scale").value, i0 = Math.pow(10, li0);
+  $("o-h-i0").textContent = sci(i0, 2) + " A cm⁻²";
+  $("o-h-alpha").textContent = a.toFixed(2);
+  $("o-h-T").textContent = (T - 273).toFixed(0) + " °C (" + T + " K)";
+  const etaV = linspace(-0.4, 0.4, 801), xs = etaV.map(e => e*1000);
+  const net = [], ia = [], ic = [];
+  etaV.forEach(e => { const p = bvParts(e, i0, a, n, T); ia.push(p.ia*1e3); ic.push(p.ic*1e3); net.push((p.ia+p.ic)*1e3); });
+  const upto = Math.round(heroProgress * xs.length);
+  const series = [];
+  if ($("h-partial").checked){
+    series.push({x:xs, y:ia, color:cssv("--anodic"), dash:[7,6], width:1.8, upto});
+    series.push({x:xs, y:ic, color:cssv("--cathodic"), dash:[7,6], width:1.8, upto});
+  }
+  series.push({x:xs, y:net, color:cssv("--ink"), width:3, upto});
+  plot($("c-hero"), {xmin:-400, xmax:400, ymin:-scale*1.05, ymax:scale*1.05,
+    xlabel:"Overpotential, η / mV", ylabel:"Current density, i / mA cm⁻²", series,
+    yticks: ticks(-scale, scale, 8)});
+  const ba = 2.302585*R*T/((1-a)*n*F)*1000, bc = 2.302585*R*T/(a*n*F)*1000;
+  $("r-h-ba").textContent = ba.toFixed(0) + " mV dec⁻¹";
+  $("r-h-bc").textContent = bc.toFixed(0) + " mV dec⁻¹";
+  $("r-h-rct").textContent = ohms(R*T/(n*F*i0));
+  const eta10 = solveEta(-0.01, e => bv(e, i0, a, n, T), -5, 0.5);
+  $("r-h-eta10").textContent = fx(eta10*1000, 0) + " mV";
+}
+bindInputs(["h-i0","h-alpha","h-T","h-n","h-scale","h-partial"], drawHero);
+
+/* ---------- energy diagram ---------- */
+function drawEnergy(){
+  const etaMV = +$("e-eta").value, a = +$("e-alpha").value;
+  const eta = etaMV/1000, n = 1, G0 = 40, shift = n*F*eta/1000; // kJ/mol
+  $("o-e-eta").textContent = fx(etaMV,0) + " mV";
+  $("o-e-alpha").textContent = a.toFixed(2);
+  const xR = 0.18, xO = 0.82, xTS = xR + (0.5 + (0.5-a)*0.6)*(xO-xR), wall = 78;
+  const profile = (GO, GTS) => {
+    const nodes = [[0, wall],[xR, 0],[xTS, GTS],[xO, GO],[1, GO + wall]];
+    const xs = linspace(0, 1, 500), ys = xs.map(x => {
+      let k = 0; while (k < nodes.length-2 && x > nodes[k+1][0]) k++;
+      const [x1,y1] = nodes[k], [x2,y2] = nodes[k+1], t = (x - x1)/(x2 - x1);
+      return y1 + (y2 - y1)*(1 - Math.cos(Math.PI*t))/2;
+    });
+    return {xs, ys};
+  };
+  const GO = -shift, GTS = G0 - (1-a)*shift;
+  const eq = profile(0, G0), now = profile(GO, GTS);
+  const ga = GTS, gc = GTS - GO;
+  const anod = cssv("--anodic"), cath = cssv("--cathodic");
+  plot($("c-energy"), {xmin:0, xmax:1, ymin:-45, ymax:85, noZero:true,
+    xticks:[], xlabel:"Reaction coordinate", ylabel:"Free energy, G / kJ mol⁻¹",
+    yticks:[-40,-20,0,20,40,60,80],
+    series:[{x:eq.xs, y:eq.ys, color:cssv("--ink-soft"), dash:[5,5], width:1.6},
+            {x:now.xs, y:now.ys, color:cssv("--ink"), width:3}],
+    after:(ctx, X, Y, g) => {
+      const arrow = (x, y0, y1, color) => {
+        if (Math.abs(Y(y1)-Y(y0)) < 4) return;
+        ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(X(x), Y(y0)); ctx.lineTo(X(x), Y(y1)); ctx.stroke();
+        const dir = Y(y1) < Y(y0) ? 1 : -1;
+        [[y1, dir],[y0, -dir]].forEach(([yy, d]) => {
+          ctx.beginPath(); ctx.moveTo(X(x), Y(yy)); ctx.lineTo(X(x)-5, Y(yy)+8*d); ctx.lineTo(X(x)+5, Y(yy)+8*d); ctx.closePath(); ctx.fill();
+        });
+      };
+      const tag = (px, py, sub, color, alignRight) => {
+        ctx.font = "600 15px " + g.sans; const wb = ctx.measureText("ΔG‡").width;
+        ctx.font = "600 11px " + g.sans; const ws = ctx.measureText(sub).width;
+        const wt = wb + ws + 2, x0 = alignRight ? px - wt : px;
+        ctx.fillStyle = cssv("--sheet"); ctx.fillRect(x0 - 4, py - 12, wt + 8, 24);
+        ctx.fillStyle = color; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+        ctx.font = "600 15px " + g.sans; ctx.fillText("ΔG‡", x0, py);
+        ctx.font = "600 11px " + g.sans; ctx.fillText(sub, x0 + wb + 1, py + 6);
+      };
+      const guide = (x0, x1, y, color) => { ctx.strokeStyle=color; ctx.lineWidth=1; ctx.setLineDash([3,4]); ctx.beginPath(); ctx.moveTo(X(x0),Y(y)); ctx.lineTo(X(x1),Y(y)); ctx.stroke(); ctx.setLineDash([]); };
+      const axA = xTS - 0.085, axC = xTS + 0.085;
+      guide(xR, axA, 0, g.soft); guide(axA, axC, GTS, g.soft); guide(axC, xO, GO, g.soft);
+      arrow(axA, 0, GTS, anod);
+      arrow(axC, GO, GTS, cath);
+      tag(X(axA) - 8, Y(GTS) - 16, "a", anod, true);
+      tag(X(axC) + 8, Y(GTS) - 16, "c", cath, false);
+      ctx.font = "600 15px " + g.sans; ctx.textAlign = "center"; ctx.textBaseline = "top";
+      [["R", xR, 0], ["O + e⁻", xO, GO]].forEach(([t, xx, yy]) => {
+        const tw = ctx.measureText(t).width;
+        ctx.fillStyle = cssv("--sheet"); ctx.fillRect(X(xx) - tw/2 - 4, Y(yy) + 6, tw + 8, 20);
+        ctx.fillStyle = g.ink; ctx.fillText(t, X(xx), Y(yy) + 8);
+      });
+      ctx.fillStyle = g.ink;
+      ctx.textBaseline = "bottom"; ctx.fillText("‡", X(xTS), Y(GTS) - 6);
+    }});
+  const f = fT(T25), ka = Math.exp((1-a)*f*eta), kc = Math.exp(-a*f*eta);
+  $("r-e-ga").textContent = ga.toFixed(1) + " kJ mol⁻¹";
+  $("r-e-gc").textContent = gc.toFixed(1) + " kJ mol⁻¹";
+  const rel = v => v >= 0.01 && v < 1000 ? "× " + v.toPrecision(3) : "× " + sci(v, 2);
+  $("r-e-ka").textContent = rel(ka);
+  $("r-e-kc").textContent = rel(kc);
+  const net = ka - kc;
+  $("r-e-net").textContent = Math.abs(net) < 1e-9 ? "0" : Math.abs(net) < 1000 ? minus(net.toPrecision(3)) : sci(net, 2);
+  $("r-e-shift").textContent = fx(GO, 1) + " kJ mol⁻¹";
+  $("r-e-state").textContent = etaMV === 0 ? "Equilibrium: both barriers equal ΔG‡₀ and the partial currents cancel."
+    : etaMV > 0 ? "Positive η lowers O + e⁻ and the anodic barrier: net oxidation."
+    : "Negative η raises O + e⁻ and lowers the cathodic barrier: net reduction.";
+}
+bindInputs(["e-eta","e-alpha"], drawEnergy);
+
+/* ---------- limits ---------- */
+function drawLimits(){
+  const li0 = +$("l-i0").value, a = +$("l-alpha").value, etaT = +$("l-eta").value;
+  const i0 = Math.pow(10, li0), n = 1, T = T25, f = fT(T);
+  $("o-l-i0").textContent = sci(i0, 2) + " A cm⁻²";
+  $("o-l-alpha").textContent = a.toFixed(2);
+  $("o-l-eta").textContent = etaT + " mV";
+  // linear plot
+  const e1 = linspace(-0.06, 0.06, 241), x1 = e1.map(e => e*1000);
+  const yb = e1.map(e => bv(e, i0, a, n, T)*1e3), yl = e1.map(e => i0*n*f*e*1e3);
+  const ym = Math.max(Math.abs(yb[0]), Math.abs(yb[yb.length-1])) * 1.05;
+  const pts = [];
+  if (etaT <= 60){
+    pts.push({x:etaT, y:bv(etaT/1000, i0, a, n, T)*1e3, color:cssv("--ink"), r:4.5});
+    pts.push({x:etaT, y:i0*n*f*etaT/1000*1e3, color:cssv("--transport"), r:4.5, hollow:true});
+  }
+  plot($("c-lin"), {xmin:-60, xmax:60, ymin:-ym, ymax:ym,
+    xlabel:"η / mV", ylabel:"i / mA cm⁻²",
+    series:[{x:x1, y:yb, color:cssv("--ink"), width:2.6}, {x:x1, y:yl, color:cssv("--transport"), dash:[8,5], width:2.4}],
+    points:pts, vlines: etaT <= 60 ? [{x:etaT, color:cssv("--rule"), dash:[2,4], width:1}] : []});
+  // Tafel plot
+  const e2 = linspace(-0.4, 0.4, 801), x2 = e2.map(e => e*1000);
+  const yT = e2.map(e => Math.log10(Math.abs(bv(e, i0, a, n, T))));
+  const xa = x2.filter(v => v >= 0), xc = x2.filter(v => v <= 0);
+  const ya = xa.map(v => li0 + (1-a)*f*(v/1000)/LN10), yc = xc.map(v => li0 - a*f*(v/1000)/LN10);
+  const ymin = li0 - 1.2, ymax = Math.max(...yT.filter(isFinite)) + 0.4;
+  plot($("c-tafel"), {xmin:-400, xmax:400, ymin, ymax,
+    xlabel:"η / mV", ylabel:"|i| / A cm⁻²", yfmt:logFmt, logY:true, yticks:intTicks(ymin, ymax, 7),
+    series:[{x:x2, y:yT, color:cssv("--ink"), width:2.4},
+            {x:xa, y:ya, color:cssv("--anodic"), dash:[8,5], width:2.4}, {x:xc, y:yc, color:cssv("--cathodic"), dash:[8,5], width:2.4}],
+    vlines:[{x:etaT, color:cssv("--rule"), dash:[2,4], width:1}],
+    points:[{x:0, y:li0, color:cssv("--ink"), r:5, hollow:true},
+            {x:etaT, y:Math.log10(Math.abs(bv(etaT/1000, i0, a, n, T))), color:cssv("--ink"), r:4.5}],
+    after:(ctx, X, Y, g) => { ctx.fillStyle = g.ink; ctx.font = "600 13px " + g.sans; ctx.textAlign="left"; ctx.textBaseline="top"; ctx.fillText("log i₀", X(0)+9, Y(li0)+4); }});
+  const x = f*etaT/1000, ib = Math.exp((1-a)*x) - Math.exp(-a*x);
+  const eLin = (x/ib - 1)*100, eTaf = (Math.exp((1-a)*x)/ib - 1)*100;
+  $("r-l-rct").textContent = ohms(R*T/(F*i0));
+  $("r-l-b").textContent = (2.302585/((1-a)*f)*1000).toFixed(0) + " / " + (2.302585/(a*f)*1000).toFixed(0) + " mV dec⁻¹";
+  const pct = v => Math.abs(v) >= 1000 ? "> 1000%" : (Math.abs(v) < 10 ? fx(v, 2) : fx(v, 0)) + "%";
+  $("r-l-elin").textContent = pct(eLin);
+  $("r-l-etaf").textContent = pct(eTaf);
+}
+bindInputs(["l-i0","l-alpha","l-eta"], drawLimits);
+
+/* ---------- mass transport ---------- */
+function drawMT(){
+  const li0 = +$("m-i0").value, liL = +$("m-iL").value, etaMV = +$("m-eta").value;
+  const i0 = Math.pow(10, li0), iL = [0.5,1,2,5,10,20,50,100][liL]/1000, a = 0.5, n = 1, T = T25;
+  $("o-m-i0").textContent = sci(i0, 2) + " A cm⁻²";
+  $("o-m-iL").textContent = (iL*1000) + " mA cm⁻²";
+  $("o-m-eta").textContent = fx(etaMV, 0) + " mV";
+  const e = linspace(-0.5, 0.5, 1001), xs = e.map(v => v*1000);
+  const yk = e.map(v => bv(v, i0, a, n, T)), ym = e.map(v => bvMT(v, i0, a, n, T, iL, iL));
+  const eta = etaMV/1000, i = bvMT(eta, i0, a, n, T, iL, iL), ik = bv(eta, i0, a, n, T);
+  const lim = iL*1e3*1.25;
+  plot($("c-mt"), {xmin:-500, xmax:500, ymin:-lim, ymax:lim,
+    xlabel:"η / mV", ylabel:"i / mA cm⁻²",
+    hlines:[{y:iL*1e3, color:cssv("--transport"), dash:[7,6], width:1.8},{y:-iL*1e3, color:cssv("--transport"), dash:[7,6], width:1.8}],
+    series:[{x:xs, y:yk.map(v=>v*1e3), color:cssv("--ink-soft"), dash:[5,5], width:1.8},
+            {x:xs, y:ym.map(v=>v*1e3), color:cssv("--ink"), width:3}],
+    points:[{x:etaMV, y:i*1e3, color:cssv("--ink"), r:5}]});
+  const ymax = Math.log10(iL) + 1.5, ymin = Math.min(li0, Math.log10(iL)) - 1.5;
+  plot($("c-mtlog"), {xmin:-500, xmax:500, ymin, ymax,
+    xlabel:"η / mV", ylabel:"|i| / A cm⁻²", yfmt:logFmt, logY:true, yticks:intTicks(ymin, ymax, 7),
+    hlines:[{y:Math.log10(iL), color:cssv("--transport"), dash:[7,6], width:1.8}],
+    series:[{x:xs, y:yk.map(v=>Math.log10(Math.abs(v))), color:cssv("--ink-soft"), dash:[5,5], width:1.8},
+            {x:xs, y:ym.map(v=>Math.log10(Math.abs(v))), color:cssv("--ink"), width:3}],
+    points: etaMV !== 0 ? [{x:etaMV, y:Math.log10(Math.abs(i)), color:cssv("--ink"), r:5}] : []});
+  $("r-m-i").textContent = smart(i*1e3, "mA cm⁻²");
+  $("r-m-ik").textContent = smart(ik*1e3, "mA cm⁻²");
+  $("r-m-co").textContent = (1 + i/iL).toFixed(3);
+  $("r-m-cr").textContent = (1 - i/iL).toFixed(3);
+  const ratio = Math.abs(ik)/iL;
+  $("r-m-state").textContent = etaMV === 0 ? "At equilibrium: no net current, surface equals bulk."
+    : ratio < 0.1 ? "Kinetic control: the kinetic current is below 10% of the limiting current, so surface concentrations stay close to bulk."
+    : ratio > 10 ? "Mass-transport control: the reactant is almost exhausted at the surface."
+    : "Mixed control: kinetics and transport both limit the current.";
+}
+bindInputs(["m-i0","m-iL","m-eta"], drawMT);
+
+/* ---------- Example A: HER ---------- */
+const HER = [["Pt",-3.1],["Pd",-3.0],["Ni",-5.2],["Fe",-5.8],["Cu",-7.0],["Pb",-12.0],["Hg",-12.3]];
+function drawHER(){
+  const b = +document.querySelector('input[name="her-b"]:checked').value;
+  const j = +$("her-j").value / 1000;
+  const vals = HER.map(([m, l]) => [m, b * (Math.log10(j) - l)]);
+  const cv = $("c-her");
+  const maxV = Math.max(...vals.map(v => v[1]));
+  const xmax = Math.max(200, Math.ceil(maxV*1.18/100)*100);
+  plot(cv, {xmin:0, xmax, ymin:0, ymax:HER.length, noZero:true, margin:{l:48},
+    yticks:[], xlabel:"Overpotential to reach " + (j*1000) + " mA cm⁻² / mV", ylabel:"",
+    after:(ctx, X, Y, g) => {
+      vals.forEach(([m, v], k) => {
+        const yc = HER.length - k - 0.5, bh = Math.min(26, (Y(0)-Y(1))*0.62);
+        ctx.fillStyle = cssv("--cathodic");
+        ctx.fillRect(X(0), Y(yc) - bh/2, X(v) - X(0), bh);
+        ctx.fillStyle = g.ink; ctx.font = "600 13.5px " + g.sans; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+        ctx.fillText(Math.round(v) + " mV", X(v) + 7, Y(yc));
+      });
+    }});
+  const ctx = cv.getContext("2d"), dpr = window.devicePixelRatio || 1;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const h = cv.clientHeight, ph = h - 12 - 50;
+  ctx.fillStyle = cssv("--ink"); ctx.font = "600 14px " + cssv("--sans"); ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  HER.forEach(([m], k) => ctx.fillText(m, 40, 12 + (k + 0.5) * ph / HER.length));
+}
+bindInputs(["her-j"], drawHER);
+document.querySelectorAll('input[name="her-b"]').forEach(el => el.addEventListener("change", drawHER));
+
+/* ---------- Example B: LPR and Stern–Geary ---------- */
+(function(){
+  const i0 = 5e-4, a = 0.5, T = T25, f = fT(T), C = 5e-6; // mol cm^-3
+  const etas = [-10, -5, 0, 5, 10];
+  const cur = etas.map(e => bv(e/1000, i0, a, 1, T)); // A cm-2
+  $("t-lpr").innerHTML = "<thead><tr><th scope='col'>η / mV</th><th scope='col'>i / µA cm⁻²</th></tr></thead><tbody>" +
+    etas.map((e,k) => "<tr><td>" + fx(e,0) + "</td><td>" + fx(cur[k]*1e6, 1) + "</td></tr>").join("") + "</tbody>";
+  const sxy = etas.reduce((s,e,k) => s + (e/1000)*(+(cur[k]*1e6).toFixed(1))*1e-6, 0);
+  const sxx = etas.reduce((s,e) => s + (e/1000)**2, 0);
+  const slope = sxy/sxx, Rct = 1/slope, i0c = R*T/(F*Rct), k0 = i0c/(F*C);
+  $("s-lpr").innerHTML = [
+    "The points lie on a straight line through the origin and are antisymmetric, so all of them sit in the linear regime.",
+    "A least-squares line through the origin gives di/dη = Σηi / Ση² = " + (slope*1e3).toFixed(1) + " mA cm⁻² V⁻¹, so R<sub>ct</sub> = 1/slope = " + Rct.toFixed(1) + " Ω cm².",
+    "i₀ = RT/(nF R<sub>ct</sub>) = (8.314 × 298.15)/(96 485 × " + Rct.toFixed(1) + ") = " + sci(i0c, 3) + " A cm⁻², that is " + (i0c*1e3).toFixed(2) + " mA cm⁻².",
+    "With equal concentrations, i₀ = nFk⁰C*, so k⁰ = " + sci(i0c, 3) + " / (96 485 × 5 × 10⁻⁶ mol cm⁻³) = " + sci(k0, 2) + " cm s⁻¹: a moderately slow couple."
+  ].map(s => "<li>" + s + "</li>").join("");
+  const ba = 60, bc = 120, Rp = 1500, B = ba*bc/(2.302585*(ba+bc)); // mV
+  const icorr = B/1000/Rp; // A cm-2
+  const icorrU = icorr*1e6, EW = 27.92, rho = 7.87, CR = 3.27e-3*icorrU*EW/rho;
+  $("s-sg").innerHTML = [
+    "B = (60 × 120) / (2.303 × 180) = " + B.toFixed(1) + " mV.",
+    "i<sub>corr</sub> = B/R<sub>p</sub> = " + (B/1000).toFixed(4) + " V / 1500 Ω cm² = " + icorrU.toFixed(1) + " µA cm⁻².",
+    "Following ASTM G102 with EW = 27.92 g eq⁻¹ and ρ = 7.87 g cm⁻³ for iron: CR = 3.27 × 10⁻³ × i<sub>corr</sub> × EW / ρ = " + CR.toFixed(2) + " mm y⁻¹.",
+    "Point to discuss: B ranges from about 13 mV (both slopes 60 mV dec⁻¹) to 52 mV (b<sub>a</sub> = 120 mV dec⁻¹ with a diffusion-limited cathodic reaction), so an assumed B can shift the estimate by a factor of two or more. Measure the Tafel slopes when you can."
+  ].map(s => "<li>" + s + "</li>").join("");
+})();
+
+/* ---------- Example C: Tafel fit ---------- */
+let ds = null, revealed = false;
+function gauss(){ let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+function newData(){
+  const a = 0.40 + Math.random()*0.20, li0 = -6 + Math.random()*2, iL = (50 + Math.random()*100)/1000;
+  const i0 = Math.pow(10, li0), eta = [], y = [];
+  for (let e = -600; e <= -10; e += 10){
+    const i = bvMT(e/1000, i0, a, 1, T25, iL, iL) * (1 + 0.03*gauss());
+    eta.push(e); y.push(Math.log10(Math.abs(i)));
+  }
+  ds = {a, i0, iL, eta, y};
+  revealed = false; $("r-t-true").hidden = true; $("t-reveal").textContent = "Show true values";
+}
+function localSlopes(eta, y, w){
+  const n = eta.length, out = new Array(n);
+  for (let k = 0; k < n; k++){
+    const a = Math.max(0, k-w), b = Math.min(n-1, k+w), N = b-a+1;
+    let sx = 0, sy = 0;
+    for (let j = a; j <= b; j++){ sx += eta[j]; sy += y[j]; }
+    const mx = sx/N, my = sy/N;
+    let sxy = 0, sxx = 0;
+    for (let j = a; j <= b; j++){ sxy += (eta[j]-mx)*(y[j]-my); sxx += (eta[j]-mx)**2; }
+    const s = sxy/sxx, bl = s < 0 ? -1/s : NaN;
+    out[k] = (isFinite(bl) && bl > 0 && bl < 2000) ? bl : NaN;
+  }
+  return out;
+}
+function median(v){
+  const u = v.filter(isFinite).slice().sort((a,b) => a-b);
+  if (!u.length) return NaN;
+  const h = Math.floor(u.length/2);
+  return u.length % 2 ? u[h] : (u[h-1]+u[h])/2;
+}
+function drawSlope(fit, inW, lo, hi){
+  const w = +$("t-smooth").value, mode = $("t-x").value;
+  const bl = localSlopes(ds.eta, ds.y, w);
+  const xs = mode === "eta" ? ds.eta : ds.y;
+  const med = median(bl.filter((v,k) => inW[k]));
+  const bTrue = 2.302585*R*T25/(ds.a*F)*1000;
+  const ref = isFinite(med) ? med : (fit && fit.s < 0 ? -1/fit.s : 120);
+  const ymax = Math.min(700, Math.max(160, ref*2.4));
+  const cath = cssv("--cathodic"), soft = cssv("--ink-soft");
+  const xin = xs.filter((_,k) => inW[k]);
+  const xmin = mode === "eta" ? -620 : Math.min(...ds.y) - 0.2;
+  const xmax = mode === "eta" ? 5 : Math.max(...ds.y) + 0.2;
+  const band = xin.length ? [{x0: mode === "eta" ? lo-5 : Math.min(...xin)-0.03,
+                              x1: mode === "eta" ? hi+5 : Math.max(...xin)+0.03,
+                              color: cssv("--window")}] : [];
+  const hlines = [];
+  if (fit && fit.s < 0) hlines.push({y: -1/fit.s, color: cath, dash:[8,5], width:2});
+  if (revealed) hlines.push({y: bTrue, color: cssv("--ink"), dash:[3,4], width:2});
+  plot($("c-slope"), {xmin, xmax, ymin:0, ymax, noZero:true,
+    xlabel: mode === "eta" ? "η / mV" : "|i| / A cm⁻²",
+    ylabel: "Local Tafel slope / mV dec⁻¹",
+    xfmt: mode === "eta" ? defFmt : logFmt,
+    xticks: mode === "eta" ? null : intTicks(xmin, xmax, 6),
+    bands: band, hlines,
+    series:[{x:xs, y:bl, color:soft, width:1.4}],
+    points: xs.map((x,k) => ({x, y:bl[k], color: inW[k] ? cath : soft, r: inW[k] ? 4 : 3, hollow: !inW[k]}))
+      .filter(p => isFinite(p.y))});
+  $("r-t-med").textContent = isFinite(med) ? med.toFixed(0) + " mV dec⁻¹" : "–";
+}
+function drawFit(){
+  if (!ds) newData();
+  const e1 = +$("t-a").value, e2 = +$("t-b").value, lo = Math.min(e1,e2), hi = Math.max(e1,e2);
+  $("o-t-a").textContent = fx(e1,0) + " mV"; $("o-t-b").textContent = fx(e2,0) + " mV";
+  const inW = ds.eta.map(e => e >= lo && e <= hi);
+  const xs = ds.eta.filter((_,k) => inW[k]), ys = ds.y.filter((_,k) => inW[k]);
+  let fit = null;
+  if (xs.length >= 3){
+    const N = xs.length, mx = xs.reduce((s,v)=>s+v,0)/N, my = ys.reduce((s,v)=>s+v,0)/N;
+    let sxy = 0, sxx = 0, syy = 0;
+    for (let k=0;k<N;k++){ sxy += (xs[k]-mx)*(ys[k]-my); sxx += (xs[k]-mx)**2; syy += (ys[k]-my)**2; }
+    const s = sxy/sxx, c = my - s*mx; // dec per mV, intercept
+    fit = {s, c, r2: syy > 0 ? (sxy*sxy)/(sxx*syy) : 1, N};
+  }
+  const ymin = Math.floor(Math.min(...ds.y)) - 0.5, ymax = Math.ceil(Math.max(...ds.y)) + 0.3;
+  const cath = cssv("--cathodic"), soft = cssv("--ink-soft");
+  const points = ds.eta.map((e,k) => ({x:e, y:ds.y[k], color: inW[k] ? cath : soft, r: inW[k] ? 4 : 3.2, hollow: !inW[k]}));
+  const series = fit ? [{x:[-620, 0], y:[fit.c + fit.s*(-620), fit.c], color:cath, dash:[7,6], width:2}] : [];
+  if (fit) points.push({x:0, y:fit.c, color:cath, r:5.5, hollow:true});
+  plot($("c-fit"), {xmin:-620, xmax:5, ymin:Math.min(ymin, fit ? fit.c - 0.3 : ymin), ymax,
+    xlabel:"η / mV", ylabel:"|i| / A cm⁻²", yfmt:logFmt, logY:true,
+    yticks:intTicks(Math.min(ymin, fit ? fit.c - 0.3 : ymin), ymax, 7),
+    bands:[{x0:lo-5, x1:hi+5, color:cssv("--window")}], series, points});
+  drawSlope(fit, inW, lo, hi);
+  if (fit && fit.s < 0){
+    const b = -1/fit.s; // mV per decade
+    const alpha = 2.302585*R*T25/(F*b/1000);
+    $("r-t-n").textContent = fit.N;
+    $("r-t-b").textContent = b.toFixed(0) + " mV dec⁻¹";
+    $("r-t-alpha").textContent = alpha.toFixed(2);
+    $("r-t-i0").textContent = sci(Math.pow(10, fit.c), 2) + " A cm⁻²";
+    $("r-t-r2").textContent = fit.r2.toFixed(4);
+  } else {
+    $("r-t-n").textContent = fit ? fit.N : xs.length;
+    ["r-t-b","r-t-alpha","r-t-i0","r-t-r2"].forEach(id => $(id).textContent = "–");
+    if (!fit) $("r-t-b").textContent = "widen the window";
+  }
+  if (revealed){
+    $("r-t-true").textContent = "True values: α = " + ds.a.toFixed(2) + ", i₀ = " + sci(ds.i0, 2) + " A cm⁻², b = " +
+      (2.302585*R*T25/(ds.a*F)*1000).toFixed(0) + " mV dec⁻¹, limiting current = " + (ds.iL*1000).toFixed(0) + " mA cm⁻².";
+  }
+}
+bindInputs(["t-a","t-b","t-x","t-smooth"], drawFit);
+$("t-new").addEventListener("click", () => { newData(); drawFit(); });
+$("t-reveal").addEventListener("click", () => {
+  revealed = !revealed; $("r-t-true").hidden = !revealed;
+  $("t-reveal").textContent = revealed ? "Hide true values" : "Show true values";
+  drawFit();
+});
+
+/* ---------- lifecycle ---------- */
+let rq = 0;
+window.addEventListener("resize", () => { cancelAnimationFrame(rq); rq = requestAnimationFrame(redrawAll); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(redrawAll);
+redrawAll();
+if (!reduceMotion){
+  const t0 = performance.now();
+  const step = t => {
+    heroProgress = Math.min(1, (t - t0)/1100);
+    heroProgress = 1 - Math.pow(1 - heroProgress, 3);
+    drawHero();
+    if (t - t0 < 1100) requestAnimationFrame(step); else { heroProgress = 1; drawHero(); }
+  };
+  requestAnimationFrame(step);
+}
+})();
+</script>
+</body>
+</html>
